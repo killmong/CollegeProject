@@ -18,8 +18,7 @@ import Tag from "@/database/tag.model";
 import Answer from "@/database/answer.model";
 import { BadgeCriteriaType } from "@/types";
 import { assignBadges } from "../utils";
-
-export const maxDuration = 1000*30*30; // 30 days
+ // 30 days
 export async function getUserById(params: any) {
   try {
     await  connectToDatabase();
