@@ -17,7 +17,7 @@ const Navbar = () => {
           alt="Stack Overflow"
         />
         <p className="h2-bold font-spaceGrotesk text-dark-100 dark:text-light-900 max-sm:hidden">
-          Stack <span className="text-primary-500">Overflow</span>
+          pragati <span className="text-primary-500">Hub</span>
         </p>
       </Link>
       <GlobalSearch />
