@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 
 let isConnected: boolean = false;
 
+
+
 export const connectToDatabase = async () => {
   mongoose.set("strictQuery", true);
 
@@ -17,11 +19,9 @@ export const connectToDatabase = async () => {
     await mongoose.connect(process.env.MONGODB_URL, {
       dbName: "stackoverflowclone",
     });
-
     isConnected = true;
-
-    console.log("MongoDB is connected");
+    console.log("MongoDB connected successfully");
   } catch (error) {
-    console.log("MongoDB connection failed", error);
+    console.error("Error connecting to MongoDB", error);
   }
 };
