@@ -18,10 +18,10 @@ import Tag from "@/database/tag.model";
 import Answer from "@/database/answer.model";
 import { BadgeCriteriaType } from "@/types";
 import { assignBadges } from "../utils";
- // 30 days
+
 export async function getUserById(params: any) {
   try {
-    await  connectToDatabase();
+    connectToDatabase();
 
     const { userId } = params;
 
@@ -39,8 +39,9 @@ export async function createUser(userData: CreateUserParams) {
     connectToDatabase();
 
     const newUser = await User.create(userData);
-    return JSON.parse(JSON.stringify(newUser));
+    console.log("User created successfully:", newUser);
 
+    return newUser;
   } catch (error) {
     console.log("Error creating user:", error);
     throw error;
