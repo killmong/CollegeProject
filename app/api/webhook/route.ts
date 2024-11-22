@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { createUser, deleteUser, updateUser } from "@/lib/actions/user.action";
 import { NextResponse } from "next/server";
+import { clerkClient } from "@clerk/nextjs";
 
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
 
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response("Error occured -- no svix headers", {
+    return new Response("Error occurred -- no svix headers", {
       status: 400,
     });
   }
@@ -46,11 +47,12 @@ export async function POST(req: Request) {
     }) as WebhookEvent;
   } catch (err) {
     console.error("Error verifying webhook:", err);
-    return new Response("Error occured", {
+    return new Response("Error occurred", {
       status: 400,
     });
   }
 
+  const { id } = evt.data;
   const eventType = evt.type;
 
   if (eventType === "user.created") {
@@ -58,15 +60,25 @@ export async function POST(req: Request) {
       evt.data;
 
     // Create a new user in your database
-    const mongoUser = await createUser({
+    const newUser = {
       clerkId: id,
       name: `${first_name}${last_name ? ` ${last_name}` : ""}`,
       username: username!,
       email: email_addresses[0].email_address,
       picture: image_url,
-    });
+    };
+    console.log(newUser);
 
-    return NextResponse.json({ message: "OK", user: mongoUser });
+    const mongoUser = await createUser(newUser);
+    if (mongoUser) {
+      await clerkClient.users.updateUserMetadata(id, {
+        publicMetadata: {
+          userId: mongoUser._id,
+        },
+      });
+
+      return NextResponse.json({ message: "OK", user: mongoUser });
+    }
   }
 
   if (eventType === "user.updated") {
