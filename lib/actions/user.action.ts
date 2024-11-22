@@ -1,5 +1,4 @@
 "use server";
-
 import User from "@/database/user.model";
 import { connectToDatabase } from "../mongoose";
 import {
@@ -20,9 +19,10 @@ import Answer from "@/database/answer.model";
 import { BadgeCriteriaType } from "@/types";
 import { assignBadges } from "../utils";
 
+export const maxDuration = 1000*30*30; // 30 days
 export async function getUserById(params: any) {
   try {
-    connectToDatabase();
+    await  connectToDatabase();
 
     const { userId } = params;
 
@@ -34,19 +34,20 @@ export async function getUserById(params: any) {
     throw error;
   }
 }
-
 export async function createUser(userData: CreateUserParams) {
   try {
+    console.log("User data received for creation:", userData);
     connectToDatabase();
 
     const newUser = await User.create(userData);
+    return JSON.parse(JSON.stringify(newUser));
 
-    return newUser;
   } catch (error) {
-    console.log(error);
+    console.log("Error creating user:", error);
     throw error;
   }
 }
+
 
 export async function updateUser(params: UpdateUserParams) {
   try {
