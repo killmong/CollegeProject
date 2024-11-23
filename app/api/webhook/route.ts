@@ -60,24 +60,25 @@ export async function POST(req: Request) {
     const { id, email_addresses, image_url, first_name, last_name, username } =
       evt.data;
 
-    const newUser = {
+    const user = {
       clerkId: id,
       email: email_addresses[0].email_address,
       username: username!,
       firstName: first_name,
       lastName: last_name,
-      picture: image_url,
+      photo: image_url,
       name: `${first_name} ${last_name}`,
+      picture: image_url,
     };
 
-    console.log(newUser);
+    console.log(user);
 
-    const mongoUser = await createUser(newUser);
+    const newUser = await createUser(user);
 
     if (newUser) {
       await clerkClient.users.updateUserMetadata(id, {
         publicMetadata: {
-          userId: mongoUser._id,
+          userId: newUser._id,
         },
       });
     }
