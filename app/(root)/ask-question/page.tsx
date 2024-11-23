@@ -12,10 +12,23 @@ export const metadata: Metadata = {
 const AskQuestion = async () => {
   const { userId } = auth();
 
-  if (!userId) redirect("/sign-in");
+  if (!userId) {
+    redirect("/sign-in");
+    return null; // Ensure the function exits after redirect
+  }
 
   const mongoUser = await getUserById({ userId });
 
+  if (!mongoUser) {
+    console.error(`User not found for userId: ${userId}`);
+    return (
+      <div>
+        <h1 className="h1-bold text-dark100_light900">User not found</h1>
+      </div>
+    );
+  }
+
+  console.log(mongoUser);
   console.log(mongoUser);
 
   return (
