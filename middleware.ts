@@ -8,7 +8,7 @@ export default authMiddleware({
     "/",
     "/forget-password",
     "/",
-    "/api/webhook",
+    "/api/webhooks/clerk",
     "question/:id",
     "/tags",
     "/tags/:id",
