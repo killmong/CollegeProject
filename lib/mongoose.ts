@@ -23,7 +23,6 @@ export const connectToDatabase = async () => {
     cached.promise ||
     mongoose.connect(MONGODB_URL, {
       dbName: "stackoverflow",
-      bufferCommands: false,
       connectTimeoutMS: 30000,
     });
 
