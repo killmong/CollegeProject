@@ -1,13 +1,13 @@
-import { clerkClient } from "@clerk/nextjs";
-import { WebhookEvent } from "@clerk/nextjs/server";
-import { headers } from "next/headers";
-import { NextResponse } from "next/server";
 import { Webhook } from "svix";
+import { headers } from "next/headers";
+import { WebhookEvent } from "@clerk/nextjs/server";
+import { createUser, deleteUser, updateUser } from "@/lib/actions/user.action";
+import { NextResponse } from "next/server";
 
-import { createUser } from "@/lib/actions/user.action";
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
-  const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+  // TODO: Add your webhook secret to .env.local
+  const WEBHOOK_SECRET = process.env.NEXT_CLERK_WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
     throw new Error(
@@ -51,43 +51,52 @@ export async function POST(req: Request) {
     });
   }
 
-  // Get the ID and type
-  const { id } = evt.data;
   const eventType = evt.type;
 
-  // CREATE User in mongodb
   if (eventType === "user.created") {
-    const { id, email_addresses, image_url, first_name, last_name, username } =
+    const { id, email_addresses, image_url, username, first_name, last_name } =
       evt.data;
 
-    const user = {
+    // Create a new user in your database
+    const mongoUser = await createUser({
       clerkId: id,
-      email: email_addresses[0].email_address,
+      name: `${first_name}${last_name ? ` ${last_name}` : ""}`,
       username: username!,
-      firstName: first_name,
-      lastName: last_name,
-      photo: image_url,
-      name: `${first_name} ${last_name}`,
+      email: email_addresses[0].email_address,
       picture: image_url,
-    };
+    });
 
-    console.log(user);
-
-    const newUser = await createUser(user);
-
-    if (newUser) {
-      await clerkClient.users.updateUserMetadata(id, {
-        publicMetadata: {
-          userId: newUser._id,
-        },
-      });
-    }
-
-    return NextResponse.json({ message: "New user created", user: newUser });
+    return NextResponse.json({ message: "OK", user: mongoUser });
   }
 
-  console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
-  console.log("Webhook body:", body);
+  if (eventType === "user.updated") {
+    const { id, email_addresses, image_url, username, first_name, last_name } =
+      evt.data;
 
-  return new Response("", { status: 200 });
+    // Update the user in your database
+    const mongoUser = await updateUser({
+      clerkId: id,
+      updateData: {
+        name: `${first_name}${last_name ? ` ${last_name}` : ""}`,
+        username: username!,
+        email: email_addresses[0].email_address,
+        picture: image_url,
+      },
+      path: `/profile/${id}`,
+    });
+
+    return NextResponse.json({ message: "OK", user: mongoUser });
+  }
+
+  if (eventType === "user.deleted") {
+    const { id } = evt.data;
+
+    const deletedUser = await deleteUser({
+      clerkId: id!,
+    });
+
+    return NextResponse.json({ message: "OK", user: deletedUser });
+  }
+
+  return NextResponse.json({ message: "OK" });
 }
